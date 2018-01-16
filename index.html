@@ -1,0 +1,62 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Main</title>
+    <style media="screen">
+        #map {
+            width: 600px;
+            height: 600px;
+            background-color: grey;
+        }
+    </style>
+
+  </head>
+
+  <body>
+    <div style="width: 100%; overflow: hidden;">
+      <div style="width: 300px; float: left;">
+        <h3>Elm-Land</h3>
+        <div id="elm"></div>
+      </div>
+      <div style="width: 920px; float: right;">
+        <h3>JavaScript-Land</h3>
+        <div id="map"></div>
+      </div>
+    </div>
+
+    <script src="main.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js"></script>
+    <script type="text/javascript">
+        var div = document.getElementById('elm');
+        var mapDiv = document.getElementById('map');
+        var app = Elm.Main.embed(div);
+
+        app.ports.moveMap.subscribe(function(gmPos) {
+            console.log("received", gmPos);
+            var myLatlng = new google.maps.LatLng(gmPos);
+            gmap.setCenter(myLatlng);
+        });
+
+        app.ports.addMarker.subscribe(function(gmPos) {
+            var myCenter = new google.maps.LatLng(gmPos);
+            var marker = new google.maps.Marker({position:myCenter});
+            marker.setMap(gmap);
+        });
+
+        var myLatlng = new google.maps.LatLng(0, 0);
+        var mapOptions = {
+          zoom: 6,
+          center: myLatlng
+        };
+        var gmap = new google.maps.Map(mapDiv, mapOptions);
+        gmap.addListener('drag', function() {
+          var newPos = {
+            lat: gmap.getCenter().lat(),
+            lng: gmap.getCenter().lng()
+          };
+          app.ports.mapMoved.send(newPos);
+        });
+    </script>
+  </body>
+</html>
